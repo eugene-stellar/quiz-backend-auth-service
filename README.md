@@ -25,7 +25,7 @@ Below is the high-level architecture of the Real-Time Multiplayer Quiz Game, dem
 The project is packed with features designed for a seamless, competitive, and real-time user experience.
 
 ### Authentication & User Management
-*   **Secure Access:** Full registration, login, and logout flows protected by JWT.
+*   **Secure Access:** Full registration, login, and logout flows protected by JWT. *(Note: This specific repository **Auth Service** is strictly responsible for handling these security and identity operations).*
 *   **Public Profiles:** Click on any player to view their detailed profile, including Total Games, Total Score, Total Wins, etc.
 
 ### Game Lobby
@@ -45,3 +45,103 @@ The project is packed with features designed for a seamless, competitive, and re
 ### Statistics & History
 *   **Global Leaderboard:** Real-time ranking of the top players across the platform.
 *   **Deep Match History:** Users can browse through a chronological list of their recent games (or any other player's games). Clicking on a past match reveals historical details: end date, participants, their final scores, and the ultimate winner.
+
+## Tech Stack
+
+**Core & Architecture**
+*   **Java 21**
+*   **Spring Boot** (RESTful API)
+
+**Security**
+*   **Spring Security**
+*   **JWT** (JSON Web Tokens) for stateless authentication
+*   **BCrypt** for secure password hashing
+
+**Database & ORM**
+*   **PostgreSQL** (Hosted on Supabase)
+*   **Spring Data JPA / Hibernate**
+
+**Build & Deployment**
+*   **Maven**
+*   **Docker**
+
+## Project Structure
+
+The service follows a standard layered architecture to separate concerns and maintain clean code.
+
+```text
+.
+├── src/main/java/eugenestellar/
+│   ├── config/       # Spring Security, REST client, and JWT filter configurations
+│   ├── controller/   # REST API endpoints (AuthController, InfoController)
+│   ├── exception/    # Global exception handler (@ControllerAdvice) and custom exceptions
+│   ├── model/        # JPA Entities (User), Enums (Role), and DTOs
+│   ├── repository/   # Spring Data JPA interfaces (UserRepo)
+│   ├── service/      # Core business logic (AuthService, InfoService)
+│   └── util/         # Helper classes (JwtUtil for token generation/validation)
+└── src/main/resources/
+    └── application.yml # Service configuration and database connection settings
+```
+
+## Database Schema
+
+Following the Database-per-Service microservice pattern, the Auth Service has its own isolated PostgreSQL database. It is strictly responsible for credentials and contains a single table.
+
+**Table: `users`**
+```sql
+-- WARNING: This schema is for context only and is not meant to be run.
+-- Table order and constraints may not be valid for execution.
+
+CREATE TABLE public.users (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  password character varying NOT NULL,
+  username character varying NOT NULL UNIQUE 
+    CHECK (char_length(username::text) >= 3 AND char_length(username::text) <= 20),
+  CONSTRAINT users_pkey PRIMARY KEY (id)
+);
+```
+
+## Local Development
+
+### Prerequisites
+Before running the project, ensure you have the following installed:
+*   **Java 21**
+*   **Maven** (or use the provided Maven wrapper)
+*   **Docker** (optional, for containerization)
+*   **PostgreSQL** (local instance or Supabase connection)
+
+### Configuration & Launching
+
+1.  **Set Environment Variables:**
+    Configure the required database, security, and service routing variables. You can set them in your terminal, IDE, or an `.env` file (matching the production Render environment):
+    ```env
+    DB_URL=jdbc:postgresql://<host>:5432/<db_name>
+    DB_USER=your_db_user
+    DB_PASSWORD=your_db_password
+    SECRET_WORD=your_super_secret_jwt_key_here
+    FRONTEND_URL=http://localhost:3000      # For CORS configuration
+    GAME_SERVICE_URL=http://localhost:8081  # For synchronous profile creation
+    ```
+
+2.  **Start the Application (Maven):**
+    Run the service using the included Maven wrapper.
+    *   Mac/Linux: `./mvnw spring-boot:run`
+    *   Windows: `mvnw.cmd spring-boot:run`
+
+3.  **Start the Application (Docker):**
+    Alternatively, build and run the image using Docker:
+    ```bash
+    docker build -t quiz-auth-service .
+    docker run -p 8080:8080 -env-file .env quiz-auth-service
+    ```
+
+### Usage (API Examples)
+
+Once the service is running (default port is `8080`), you can interact with the REST API.
+
+**Register a new user:**
+```bash
+curl -X POST http://localhost:8080/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"username": "player1", "password": "securepassword"}'
+```
