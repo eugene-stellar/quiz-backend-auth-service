@@ -145,3 +145,28 @@ curl -X POST http://localhost:8080/api/auth/register \
   -H "Content-Type: application/json" \
   -d '{"username": "player1", "password": "securepassword"}'
 ```
+
+## Potential Improvements & Architectural Trade-offs
+
+While the current architecture successfully separates domains, there are a few technical trade-offs that are planned to be addressed in future iterations:
+
+*   **Tight Coupling on Registration (Synchronous Communication):** 
+    *   *Current State:* When a new user registers, the Auth Service makes a synchronous REST call to the Game Service (`GAME_SERVICE_URL`) to create a player profile. If the Game Service is temporarily down, the registration process might fail or result in inconsistent data.
+    *   *Planned Solution:* Introduce an Event-Driven Architecture using a message broker (e.g., **Apache Kafka** or **RabbitMQ**). The Auth Service will simply publish a `UserRegisteredEvent`, and the Game Service will consume it asynchronously, ensuring eventual consistency and high availability.
+*   **Token Revocation & Logout:**
+    *   *Current State:* The application uses stateless JWTs. While great for performance, stateless tokens cannot be easily invalidated on the server side before they naturally expire (e.g., during a manual logout).
+    *   *Planned Solution:* Integrate **Redis** to maintain a fast, in-memory "blacklist" for revoked tokens, or implement a stricter short-lived Access Token + rotating Refresh Token mechanism.
+ 
+---
+
+## Related Repositories
+
+*   **Auth Service** *(This Repository)*
+*   [Game Service](https://github.com/eugene-stellar/quiz-backend-game-service) - Handles WebSockets, real-time game logic, and leaderboards.
+*   [Frontend Client](https://github.com/mildoss/quiz-frontend) - Next.js User Interface.
+
+## License & Info
+
+*   **License:** MIT
+*   **Author:** [Eugene Bielichenko](https://github.com/eugene-stellar)
+*   **Last Updated:** July 2026
