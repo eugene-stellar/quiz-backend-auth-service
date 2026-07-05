@@ -162,7 +162,7 @@ While the current architecture successfully separates domains, there are a few t
 ## Related Repositories
 
 *   **Auth Service** *(This Repository)*
-*   [Game Service](https://github.com/eugene-stellar/quiz-backend-game-service) - Handles WebSockets, real-time game logic, and leaderboards.
+*   [Game Service](https://github.com/eugene-stellar/quiz-backend-game-service) - Manages WebSockets, game state, and round logic.
 *   [Frontend Client](https://github.com/mildoss/quiz-frontend) - Next.js User Interface.
 
 ## License & Info
